@@ -1,11 +1,21 @@
 package me.binwang.demo.stream
 
-import cats.effect.{IO, IOApp}
+import cats.effect.{ContextShift, IO, IOApp, Timer}
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executors, TimeUnit}
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{DurationInt, DurationLong, FiniteDuration}
 
 trait BaseApp extends IOApp {
+
+  private val executor = Executors.newFixedThreadPool(2, (r: Runnable) => {
+    val back = new Thread(r)
+    back.setDaemon(true)
+    back
+  })
+  override implicit def executionContext: ExecutionContext = ExecutionContext.fromExecutor(executor)
+  override implicit def timer: Timer[IO] = IO.timer(executionContext)
+  override implicit def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
   protected val produceDelay: FiniteDuration = 1.seconds
   protected val consumeDelay: FiniteDuration = 10.millis

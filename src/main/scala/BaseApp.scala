@@ -2,7 +2,8 @@ package me.binwang.demo.stream
 
 import cats.effect.{IO, IOApp}
 
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.{DurationInt, DurationLong, FiniteDuration}
 
 trait BaseApp extends IOApp {
 
@@ -28,6 +29,17 @@ trait BaseApp extends IOApp {
       _ <- IO.sleep(consumeDelay)
       _ <- IO(println(s"Consumed $x"))
     } yield ()
+  }
+
+  protected def printElapsedTime(task: IO[_]): IO[Unit] = {
+    for {
+      start <- IO(System.nanoTime())
+      _ <- task
+      end <- IO(System.nanoTime())
+      timeDiff = (end - start).nanos
+      _ <- IO(println(s"Time used: ${timeDiff.toUnit(TimeUnit.MILLISECONDS)} ms"))
+    } yield ()
+
   }
 
 }

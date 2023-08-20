@@ -11,7 +11,7 @@ object BatchIOApp extends BaseApp {
     loop(0).map(_ => ExitCode.Success)
   }
 
-  def loop(start: Int): IO[Unit] = {
+  private def loop(start: Int): IO[Unit] = {
     produce(start, start + size)
       .flatMap { _.map(consume).parSequence}
       .flatMap(_ => loop(start + size))

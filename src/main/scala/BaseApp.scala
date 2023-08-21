@@ -20,7 +20,7 @@ trait BaseApp extends IOApp {
 
   protected val produceDelay: FiniteDuration = 1000.millis
   protected val minConsumeDelayMills: Long = 10
-  protected val maxConsumeDelayMills: Long = 1000
+  protected val maxConsumeDelayMills: Long = 2000
 
   protected val batchSize = 100
   protected val totalSize = 5000

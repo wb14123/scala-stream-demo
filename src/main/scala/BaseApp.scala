@@ -5,6 +5,7 @@ import cats.effect.{ContextShift, IO, IOApp, Timer}
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{DurationInt, DurationLong, FiniteDuration}
+import scala.util.Random
 
 trait BaseApp extends IOApp {
 
@@ -17,8 +18,12 @@ trait BaseApp extends IOApp {
   override implicit def timer: Timer[IO] = IO.timer(executionContext)
   override implicit def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
-  protected val produceDelay: FiniteDuration = 1.seconds
-  protected val consumeDelay: FiniteDuration = 10.millis
+  protected val produceDelay: FiniteDuration = 1000.millis
+  protected val minConsumeDelayMills: Long = 10
+  protected val maxConsumeDelayMills: Long = 1000
+
+  protected val batchSize = 100
+  protected val totalSize = 5000
 
 
   def produce(start: Int, end: Int): IO[Seq[Int]] = {
@@ -30,14 +35,12 @@ trait BaseApp extends IOApp {
     } yield result
   }
 
-  def produceAsStream(start: Int, size: Int): fs2.Stream[IO, Int] = {
-    fs2.Stream.evalSeq(produce(start, size))
-  }
-
   protected def consume(x: Int): IO[Unit] = {
+    val consumeDelayMillis = Random.nextLong(maxConsumeDelayMills - minConsumeDelayMills) + minConsumeDelayMills
+    val consumeDelay = consumeDelayMillis.millis
     for {
       _ <- IO.sleep(consumeDelay)
-      _ <- IO(println(s"Consumed $x"))
+      _ <- IO(println(s"Consumed $x, took $consumeDelayMillis ms"))
     } yield ()
   }
 

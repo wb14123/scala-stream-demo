@@ -1,9 +1,10 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{Blocker, ContextShift, IO, Timer}
 import cats.implicits._
 
-class BatchIOApp(config: TestConfig)(implicit timer: Timer[IO], contextShift: ContextShift[IO]) extends TestRunner(config) {
+class BatchIOApp(config: TestConfig)(
+  implicit timer: Timer[IO], contextShift: ContextShift[IO], blocker: Blocker) extends TestRunner(config) {
 
   override val name = "IO batch"
 

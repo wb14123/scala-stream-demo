@@ -1,6 +1,8 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ContextShift, ExitCode, IO, IOApp, Timer}
+import AsyncConsole.asyncPrintln
+
+import cats.effect.{Blocker, ContextShift, ExitCode, IO, IOApp, Timer}
 import cats.implicits._
 
 import java.util.concurrent.Executors
@@ -44,20 +46,21 @@ object Main extends IOApp {
       }
     )
 
-    configs.map { config =>
-      val runners = Seq(
-        new BatchIOApp(config),
-        new BlockingQueueApp(config),
-        new StreamApp(config),
-        new PrefetchStreamApp(config),
-        new StreamQueueApp(config),
-      )
-      for {
-        _ <- IO(println(s"========================"))
-        _ <- IO(println(s"Using setup: ${config.testName}"))
-        _ <- runners.map(_.run()).sequence
-      } yield ()
-    }.sequence.map(_ => ExitCode.Success)
+    Blocker[IO].use { implicit blocker =>
+      configs.map { config =>
+        val runners = Seq(
+          new BatchIOApp(config),
+          new BlockingQueueApp(config),
+          new StreamApp(config),
+          new PrefetchStreamApp(config),
+          new StreamQueueApp(config),
+        )
+        for {
+          _ <- asyncPrintln(s"=======================\nUsing setup: ${config.testName}")
+          _ <- runners.map(_.run()).sequence
+        } yield ()
+      }.sequence.map(_ => ExitCode.Success)
+    }
 
 
   }

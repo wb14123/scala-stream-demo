@@ -1,10 +1,11 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{Blocker, ContextShift, IO, Timer}
 import cats.implicits._
 import fs2.concurrent.Queue
 
-class StreamQueueApp(config: TestConfig)(implicit timer: Timer[IO], contextShift: ContextShift[IO]) extends TestRunner(config) {
+class StreamQueueApp(config: TestConfig)(
+  implicit timer: Timer[IO], contextShift: ContextShift[IO], blocker: Blocker) extends TestRunner(config) {
 
   override val name = "stream with fs2 queue"
 

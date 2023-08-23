@@ -1,22 +1,23 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ExitCode, IO}
+import cats.effect.IO
 import cats.implicits._
 
-object BatchIOApp extends BaseApp {
+class BatchIOApp(config: TestConfig) extends TestRunner(config) {
 
-  override def run(args: List[String]): IO[ExitCode] = {
-    val task = loop(0)
-    printElapsedTime(task).map(_ => ExitCode.Success)
+  override val name = "IO batch"
+
+  override def work(): IO[Unit] = {
+    loop(0)
   }
 
   private def loop(start: Int): IO[Unit] = {
-    if (start >= totalSize) {
+    if (start >= config.totalSize) {
       IO.unit
     } else {
-      produce(start, start + batchSize)
+      produce(start, start + config.batchSize)
         .flatMap {_.map(consume).parSequence}
-        .flatMap(_ => loop(start + batchSize))
+        .flatMap(_ => loop(start + config.batchSize))
     }
   }
 

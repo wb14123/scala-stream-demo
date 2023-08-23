@@ -1,13 +1,14 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ExitCode, IO}
+import cats.effect.IO
 
-object StreamApp extends BaseStreamApp {
+class StreamApp(config: TestConfig) extends TestRunner(config) {
 
-  override def run(args: List[String]): IO[ExitCode] = {
+  override val name = "pure stream"
+
+  override def work(): IO[Unit] = {
     // add prefetch makes the performance comparable with StreamQueueApp
-    val task = produceStream(0).prefetch.parEvalMap(batchSize)(consume).compile.drain
-    printElapsedTime(task).map(_ => ExitCode.Success)
+    produceStream(0).parEvalMap(config.batchSize)(consume).compile.drain
   }
 
 }

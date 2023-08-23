@@ -57,11 +57,11 @@ abstract class TestRunner(val config: TestConfig)(
 
   }
 
-  protected def produceStream(start: Int): fs2.Stream[IO, Int] = {
-    if (start >= config.totalSize) {
+  protected def produceStream(start: Int, end: Int = config.totalSize): fs2.Stream[IO, Int] = {
+    if (start >= end) {
       fs2.Stream.empty
     } else {
-      fs2.Stream.evalSeq(produce(start, start + config.batchSize)) ++ produceStream(start + config.batchSize)
+      fs2.Stream.evalSeq(produce(start, start + config.batchSize)) ++ produceStream(start + config.batchSize, end)
     }
   }
 

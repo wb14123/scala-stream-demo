@@ -54,6 +54,7 @@ object Main extends IOApp {
           new StreamApp(config),
           new PrefetchStreamApp(config),
           new StreamQueueApp(config),
+          new ConcurrentProducerApp(config),
         )
         for {
           _ <- asyncPrintln(s"=======================\nUsing setup: ${config.testName}")

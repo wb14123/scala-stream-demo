@@ -1,27 +1,18 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{IO, Timer}
 
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, TimeUnit}
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
 import scala.util.Random
 
 
-abstract class TestRunner(val config: TestConfig)  {
+abstract class TestRunner(val config: TestConfig)(implicit val timer: Timer[IO])  {
 
   val name: String
   def work(): IO[Unit]
 
-  private val executor = Executors.newFixedThreadPool(config.threads, (r: Runnable) => {
-    val back = new Thread(r)
-    back.setDaemon(true)
-    back
-  })
-  implicit def executionContext: ExecutionContext = ExecutionContext.fromExecutor(executor)
-  implicit def timer: Timer[IO] = IO.timer(executionContext)
-  implicit def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
   // do not compress produce output
   private val printRatio = Math.ceil(config.totalSize / (config.progressBarWidth - config.totalSize / config.batchSize).toDouble).toInt

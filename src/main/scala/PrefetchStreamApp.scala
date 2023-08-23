@@ -1,8 +1,8 @@
 package me.binwang.demo.stream
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO, Timer}
 
-class PrefetchStreamApp(config: TestConfig) extends TestRunner(config) {
+class PrefetchStreamApp(config: TestConfig)(implicit timer: Timer[IO], contextShift: ContextShift[IO]) extends TestRunner(config) {
 
   override val name = "pure stream with prefetch"
 

@@ -1,11 +1,25 @@
 package me.binwang.demo.stream
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp, Timer}
 import cats.implicits._
 
+import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 object Main extends IOApp {
+
+  private val executor = Executors.newFixedThreadPool(2, (r: Runnable) => {
+    val back = new Thread(r)
+    back.setDaemon(true)
+    back
+  })
+
+  implicit override def executionContext: ExecutionContext = ExecutionContext.fromExecutor(executor)
+
+  implicit override def timer: Timer[IO] = IO.timer(executionContext)
+
+  implicit override def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
   override def run(args: List[String]): IO[ExitCode] = {
 
@@ -14,7 +28,7 @@ object Main extends IOApp {
         override val testName: String = "slow producer"
         override val produceDelay: FiniteDuration = 1000.millis
         override val minConsumeDelayMillis: Long = 10
-        override val maxConsumeDelayMillis: Long = 1000
+        override val maxConsumeDelayMillis: Long = 100
       },
       new TestConfig {
         override val testName: String = "balanced"

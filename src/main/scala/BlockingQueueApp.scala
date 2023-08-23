@@ -1,11 +1,11 @@
 package me.binwang.demo.stream
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO, Timer}
 import cats.implicits._
 
 import java.util.concurrent.LinkedBlockingQueue
 
-class BlockingQueueApp(config: TestConfig) extends TestRunner(config) {
+class BlockingQueueApp(config: TestConfig)(implicit timer: Timer[IO], contextShift: ContextShift[IO]) extends TestRunner(config) {
 
   override val name = "blocking queue"
 

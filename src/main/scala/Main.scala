@@ -23,29 +23,29 @@ object Main extends IOApp {
 
   implicit override def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
-  override def run(args: List[String]): IO[ExitCode] = {
+  private val configs = Seq(
+    new TestConfig {
+      override val testName: String = "slow producer"
+      override val produceDelay: FiniteDuration = 1000.millis
+      override val minConsumeDelayMillis: Long = 10
+      override val maxConsumeDelayMillis: Long = 100
+    },
+    new TestConfig {
+      override val testName: String = "balanced"
+      override val produceDelay: FiniteDuration = 1005.millis
+      override val minConsumeDelayMillis: Long = 10
+      override val maxConsumeDelayMillis: Long = 2000
+    },
+    new TestConfig {
+      override val testName: String = "slow consumer"
+      override val produceDelay: FiniteDuration = 10.millis
+      override val minConsumeDelayMillis: Long = 10
+      override val maxConsumeDelayMillis: Long = 1000
+    }
+  )
 
-    val configs = Seq(
-      new TestConfig {
-        override val testName: String = "slow producer"
-        override val produceDelay: FiniteDuration = 1000.millis
-        override val minConsumeDelayMillis: Long = 10
-        override val maxConsumeDelayMillis: Long = 100
-      },
-      new TestConfig {
-        override val testName: String = "balanced"
-        override val produceDelay: FiniteDuration = 1005.millis
-        override val minConsumeDelayMillis: Long = 10
-        override val maxConsumeDelayMillis: Long = 2000
-      },
-      new TestConfig {
-        override val testName: String = "slow consumer"
-        override val produceDelay: FiniteDuration = 10.millis
-        override val minConsumeDelayMillis: Long = 10
-        override val maxConsumeDelayMillis: Long = 1000
-      }
-    )
 
+  private def runNormalApp(): IO[Unit] = {
     Blocker[IO].use { implicit blocker =>
       configs.map { config =>
         val runners = Seq(
@@ -59,9 +59,39 @@ object Main extends IOApp {
           _ <- asyncPrintln(s"=======================\nUsing setup: ${config.testName}")
           _ <- runners.map(_.run()).sequence
         } yield ()
-      }.sequence.map(_ => ExitCode.Success)
+      }.sequence.map(_ => ())
     }
+  }
 
+  private def runRealBlockingApp(): IO[Unit] = {
+    Blocker[IO].use { implicit blocker =>
+      val runner = new RealBlockingQueueApp(configs.head)
+      for {
+        _ <- asyncPrintln("This program will be blocked.")
+        _ <- runner.run()
+        _ <- asyncPrintln("If you see this message, then this program is not blocked")
+      } yield ()
+    }
+  }
+
+  override def run(args: List[String]): IO[ExitCode] = {
+    (if (args.size == 1 && args.head.equals("-n")) {
+      runNormalApp()
+    } else if (args.size == 1 && args.head.equals("-b")) {
+      runRealBlockingApp()
+    } else {
+      println(
+        """
+          |
+          |Error to run.
+          |
+          |Usage:
+          |
+          |-n Run tests that will not block the whole program
+          |-b Run RealBlockingQueueApp that will block the whole program
+          |""".stripMargin)
+      IO.pure()
+    }).map(_ => ExitCode.Success)
 
   }
 }

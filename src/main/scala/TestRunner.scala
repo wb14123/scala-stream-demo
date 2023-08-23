@@ -57,7 +57,7 @@ abstract class TestRunner(val config: TestConfig)(
 
   }
 
-  protected def produceStream(start: Int, end: Int = config.totalSize): fs2.Stream[IO, Int] = {
+  protected def produceStream(start: Int, end: Double = config.totalSize): fs2.Stream[IO, Int] = {
     if (start >= end) {
       fs2.Stream.empty
     } else {

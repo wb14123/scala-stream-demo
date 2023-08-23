@@ -33,6 +33,7 @@ object Main extends IOApp {
     configs.map { config =>
       val runners = Seq(
         new BatchIOApp(config),
+        new BlockingQueueApp(config),
         new StreamApp(config),
         new PrefetchStreamApp(config),
         new StreamQueueApp(config),

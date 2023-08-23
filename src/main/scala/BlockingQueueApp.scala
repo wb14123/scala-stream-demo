@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue
 class BlockingQueueApp(config: TestConfig)(
   implicit timer: Timer[IO], contextShift: ContextShift[IO], blocker: Blocker) extends TestRunner(config) {
 
-  override val name = "blocking queue"
+  override val name = "blocking queue !!! MAY BLOCK WHOLE APP !!!"
 
   private val queue = new LinkedBlockingQueue[Option[Int]](config.batchSize * 2)
 

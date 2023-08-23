@@ -2,6 +2,7 @@ package me.binwang.demo.stream
 
 import cats.effect.{ContextShift, IO, Timer}
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationLong
@@ -22,6 +23,9 @@ abstract class TestRunner(val config: TestConfig)  {
   implicit def timer: Timer[IO] = IO.timer(executionContext)
   implicit def contextShift: ContextShift[IO] = IO.contextShift(executionContext)
 
+  // do not compress produce output
+  private val printRatio = Math.ceil(config.totalSize / (config.progressBarWidth - config.totalSize / config.batchSize).toDouble).toInt
+  private val consumeCounter = new AtomicInteger(0)
 
   def run(): IO[Unit] = {
     val task = work()
@@ -33,7 +37,8 @@ abstract class TestRunner(val config: TestConfig)  {
       // _ <- IO(println(s"Generating from $start to $end"))
       _ <- IO.sleep(config.produceDelay)
       // _ <- IO(println(s"Generated from $start to $end"))
-      _ <- IO(print("G"))
+      // do not compress produce output
+      _ <-  IO(print("P"))
       result = Range(start, end)
     } yield result
   }
@@ -44,7 +49,8 @@ abstract class TestRunner(val config: TestConfig)  {
     for {
       _ <- IO.sleep(consumeDelay)
       // _ <- IO(println(s"Consumed $x, took $consumeDelayMillis ms"))
-      _ <- IO(print("C"))
+      // compress consumer print to fit in one line of output
+      _ <- if (consumeCounter.getAndIncrement() % printRatio == 0) IO(print("C")) else IO.pure()
     } yield ()
   }
 

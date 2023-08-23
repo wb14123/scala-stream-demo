@@ -8,7 +8,8 @@ trait TestConfig {
   val minConsumeDelayMillis: Long
   val maxConsumeDelayMillis: Long
   val batchSize = 100
-  val totalSize = 1000
+  val totalSize = 500
   val threads = 2
+  val progressBarWidth: Int = Integer.parseInt(sys.env.getOrElse("COLUMNS", "80"))
 }
 

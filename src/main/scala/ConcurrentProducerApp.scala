@@ -15,6 +15,7 @@ class ConcurrentProducerApp(config: TestConfig)(
         batch * config.totalSize / produceParallelism,
         (batch + 1) * config.totalSize / produceParallelism.toDouble))
       .parJoin(produceParallelism)
+      .prefetch
       .parEvalMap(config.batchSize)(consume).compile.drain
   }
 

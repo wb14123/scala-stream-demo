@@ -25,7 +25,7 @@ object Main extends IOApp {
 
   private val configs = Seq(
     new TestConfig {
-      override val testName: String = "slow producer"
+      override val testName: String = "slow-producer"
       override val produceDelay: FiniteDuration = 1000.millis
       override val minConsumeDelayMillis: Long = 10
       override val maxConsumeDelayMillis: Long = 100
@@ -37,7 +37,7 @@ object Main extends IOApp {
       override val maxConsumeDelayMillis: Long = 2000
     },
     new TestConfig {
-      override val testName: String = "slow consumer"
+      override val testName: String = "slow-consumer"
       override val produceDelay: FiniteDuration = 10.millis
       override val minConsumeDelayMillis: Long = 10
       override val maxConsumeDelayMillis: Long = 1000
@@ -45,9 +45,9 @@ object Main extends IOApp {
   )
 
 
-  private def runNormalApp(): IO[Unit] = {
+  private def runNormalApp(configName: Option[String], runnerCls: Option[String]): IO[Unit] = {
     Blocker[IO].use { implicit blocker =>
-      configs.map { config =>
+      configs.filter(config => configName.isEmpty || config.testName.equals(configName.get)).map { config =>
         val runners = Seq(
           new BatchIOApp(config),
           new BlockingQueueApp(config),
@@ -55,7 +55,7 @@ object Main extends IOApp {
           new PrefetchStreamApp(config),
           new StreamQueueApp(config),
           new ConcurrentProducerApp(config),
-        )
+        ).filter(runner => runnerCls.isEmpty || runner.getClass.getName.split('.').last.equals(runnerCls.get))
         for {
           _ <- asyncPrintln(s"=======================\nUsing setup: ${config.testName}")
           _ <- runners.map(_.run()).sequence
@@ -77,7 +77,9 @@ object Main extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     (if (args.size == 1 && args.head.equals("-n")) {
-      runNormalApp()
+      runNormalApp(None, None)
+    } else if (args.size == 2 && args.head.equals("-n")) {
+      runNormalApp(None, args.get(1))
     } else if (args.size == 1 && args.head.equals("-b")) {
       runRealBlockingApp()
     } else {

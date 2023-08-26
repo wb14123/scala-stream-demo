@@ -5,7 +5,6 @@ ThisBuild / scalaVersion := "2.13.11"
 lazy val root = (project in file("."))
   .settings(
     name := "scala-stream-demo",
-    idePackagePrefix := Some("me.binwang.demo.stream")
   )
 
 

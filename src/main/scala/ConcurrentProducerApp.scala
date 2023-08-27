@@ -5,7 +5,7 @@ import cats.effect.{Blocker, ContextShift, IO, Timer}
 class ConcurrentProducerApp(config: TestConfig)(
   implicit timer: Timer[IO], contextShift: ContextShift[IO], blocker: Blocker) extends TestRunner(config) {
 
-  override val name = "stream with fs2 queue with concurrent producer"
+  override val name = "stream with concurrent producer"
 
   private val produceParallelism = 2
 

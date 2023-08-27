@@ -55,6 +55,7 @@ object Main extends IOApp {
           new PrefetchStreamApp(config),
           new StreamQueueApp(config),
           new ConcurrentProducerApp(config),
+          new ConcurrentProducerQueueApp(config),
         ).filter(runner => runnerCls.isEmpty || runner.getClass.getName.split('.').last.equals(runnerCls.get))
         for {
           _ <- asyncPrintln(s"=======================\nUsing setup: ${config.testName}")
